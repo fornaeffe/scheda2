@@ -1,21 +1,41 @@
 import { getStato } from './motore'
 import { PG } from './tipiDati'
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import EditIcon from '@mui/icons-material/Edit'
 import styles from './ListaPG.module.css'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useOnClickOutside } from 'usehooks-ts';
 
-function RigaPG(props:{pg: PG}) {
-  const [over, setOver] = useState(false)
+function RigaPG(props:{pg: PG, selected: boolean, onClick: () => void}) {
 
-  return <div className={styles.RigaPG} onMouseEnter={(e) => setOver(true)} onMouseLeave={(e) => setOver(false)}>
-    <div className={styles.BoxTurno}></div>
-    <div className={styles.BoxIniziativa}>{props.pg.iniziativa}</div>
-    <div className={styles.BoxNome}>{props.pg.nome}</div>
-    <div className={styles.BoxModifica} style={{display : over ? "block" : "none"}}><EditIcon /></div>
-  </div>;
+  return <ListItemButton
+    className={styles.RigaPG}
+    selected={props.selected}
+    onClick={(e) => props.onClick()}  
+  >
+    <ListItemIcon className={styles.BoxTurno}></ListItemIcon>
+    <ListItemText className={styles.BoxIniziativa}>{props.pg.iniziativa}</ListItemText>
+    <ListItemText className={styles.BoxNome}>{props.pg.nome}</ListItemText>
+    <ListItemIcon className={styles.BoxModifica} style={{display : props.selected ? "block" : "none"}}><EditIcon /></ListItemIcon>
+  </ListItemButton>
 }
 export function ListaPG() {
-  return <div className={styles.ListaPG}>
-    {getStato().dati.PGs.map((pg, i) => <RigaPG key={i} pg={pg} />)}
-  </div>;
+  const ref = useRef(null)
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  function handleListItemClick(index: number) {
+    setSelectedIndex(index)
+  }
+  const handleClickOutside = () => {
+    setSelectedIndex(-1)
+  }
+
+  useOnClickOutside(ref, handleClickOutside)
+  
+  return <List ref={ref}>
+    {getStato().dati.PGs.map((pg, i) => <RigaPG key={i} pg={pg} selected={selectedIndex == i} onClick={() => handleListItemClick(i)} />)}
+  </List>
 }
